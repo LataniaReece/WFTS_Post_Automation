@@ -5,7 +5,8 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "start": "node index.js"
+    "start": "node index.js",
+    "update-db": "node utils/updateDbWithQuotes.js"
   },
   "keywords": [],
   "author": "",
