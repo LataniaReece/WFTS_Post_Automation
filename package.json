@@ -1,0 +1,21 @@
+{
+  "name": "wfts_content_automation",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@langchain/community": "^0.0.54",
+    "@langchain/core": "^0.1.61",
+    "@langchain/openai": "^0.0.28",
+    "@supabase/supabase-js": "^2.43.1",
+    "dotenv": "^16.4.5",
+    "langchain": "^0.1.36"
+  }
+}
