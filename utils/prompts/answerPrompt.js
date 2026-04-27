@@ -75,10 +75,11 @@ Each slide should feel like it could only come at that point in the series — n
 The emotional journey should feel like: seen → understood → reframed → empowered.
 
 Output format:
-Slide 1 (Hook): [text]
-Slide 2: [text]
-...
-Last Slide (CTA): [text]`;
+- Return exactly ${totalSlides} lines.
+- Put only the slide copy on each line.
+- Do not include labels, numbering, prefixes, markdown, or quotation marks.
+- Do not write "Slide 1", "Hook", "CTA", or "Last Slide".
+- Each new line should be the next slide in order.`;
 }
 
 const answerPrompt = PromptTemplate.fromTemplate(answerTemplate);

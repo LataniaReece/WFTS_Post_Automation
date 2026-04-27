@@ -59,14 +59,24 @@ function getModelCandidates() {
   );
 }
 
+function stripCarouselLabel(line) {
+  return line
+    .replace(/^\s*[*_`#>\-\d.\s]*/g, "")
+    .replace(
+      /^(?:slide\s*\d+|last\s*slide)\s*(?:\([^)]+\))?\s*[:.\-]\s*/i,
+      "",
+    )
+    .replace(/^(?:slide\s*\d+|last\s*slide)\s*(?:\([^)]+\))?\s*/i, "")
+    .replace(/^["']|["']$/g, "")
+    .trim();
+}
+
 function parseCarouselSlides(output) {
   return output
     .split("\n")
     .map((line) => line.trim())
     .filter(Boolean)
-    .map((line) => line.replace(/^Slide\s*\d+\s*(?:\([^)]+\))?:\s*/i, ""))
-    .map((line) => line.replace(/^Last Slide\s*\([^)]+\):\s*/i, ""))
-    .map((line) => line.replace(/^["']|["']$/g, ""))
+    .map(stripCarouselLabel)
     .filter(Boolean);
 }
 

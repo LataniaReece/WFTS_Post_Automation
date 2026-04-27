@@ -364,14 +364,14 @@
 
     <script>
       const COLORS = [
-        { hex: "#F0F2FA", name: "Frost" },
-        { hex: "#2A383F", name: "Deep Teal" },
-        { hex: "#7B9E87", name: "Sage" },
-        { hex: "#E1DEE9", name: "Lavender Mist" },
-        { hex: "#B8AEC2", name: "Mauve" },
-        { hex: "#B5838D", name: "Dusty Rose" },
-        { hex: "#7180AC", name: "Periwinkle" },
-        { hex: "#B84C65", name: "Berry" },
+        "#F0F2FA",
+        "#2A383F",
+        "#7B9E87",
+        "#E1DEE9",
+        "#B8AEC2",
+        "#B5838D",
+        "#7180AC",
+        "#B84C65",
       ];
 
       const SVGS = {};
@@ -458,11 +458,11 @@
         COLORS.forEach((color) => {
           const swatch = document.createElement("button");
           swatch.type = "button";
-          swatch.className = `swatch ${selectedColor === color.hex ? "active" : ""}`;
-          swatch.style.background = color.hex;
-          swatch.title = color.name;
+          swatch.className = `swatch ${selectedColor === color ? "active" : ""}`;
+          swatch.style.background = color;
+          swatch.title = color;
           swatch.addEventListener("click", () => {
-            selectedColor = color.hex;
+            selectedColor = color;
             renderColorPicker();
           });
           colorPicker.appendChild(swatch);
@@ -480,15 +480,15 @@
           swatch.className = "swatch";
           if (
             selectedSlideIndex !== null &&
-            currentSlidesData[selectedSlideIndex]?.color === color.hex
+            currentSlidesData[selectedSlideIndex]?.color === color
           ) {
             swatch.classList.add("active");
           }
-          swatch.style.background = color.hex;
-          swatch.title = color.name;
+          swatch.style.background = color;
+          swatch.title = color;
           swatch.addEventListener("click", () => {
             updateSelectedSlide((slideData) => {
-              slideData.color = color.hex;
+              slideData.color = color;
             });
           });
           editorBgColorPicker.appendChild(swatch);
@@ -503,9 +503,21 @@
       }
 
       function getNextColor() {
-        const color = COLORS[colorIndex % COLORS.length].hex;
+        const color = COLORS[colorIndex % COLORS.length];
         colorIndex += 1;
         return color;
+      }
+
+      function stripCarouselLabel(text) {
+        return String(text || "")
+          .trim()
+          .replace(/^\s*[*_`#>\-\d.\s]*/g, "")
+          .replace(
+            /^(?:slide\s*\d+|last\s*slide)\s*(?:\([^)]+\))?\s*[:.\-]\s*/i,
+            "",
+          )
+          .replace(/^(?:slide\s*\d+|last\s*slide)\s*(?:\([^)]+\))?\s*/i, "")
+          .trim();
       }
 
       function slugifyTheme(theme) {
@@ -596,6 +608,20 @@
         return { width: 180, opacity: 0.5, rotation: 8 };
       }
 
+      function getCarouselIllustrationKey(index) {
+        if (selectedIllus === "none") {
+          return "none";
+        }
+
+        const imageKeys = Object.keys(IMAGE_ASSETS);
+        if (!imageKeys.length) {
+          return selectedIllus;
+        }
+
+        const startIndex = Math.max(0, imageKeys.indexOf(selectedIllus));
+        return imageKeys[(startIndex + index) % imageKeys.length];
+      }
+
       function buildSlide(
         text,
         color,
@@ -671,21 +697,26 @@
       }
 
       function createSlideData(postType, slides, text, index) {
+        const normalizedText =
+          postType === "carousel" ? stripCarouselLabel(text) : text;
         const color = selectedColor === "auto" ? getNextColor() : selectedColor;
         const isHook = postType === "carousel" && index === 0;
         const isCta = postType === "carousel" && index === slides.length - 1;
         const extraClass = isCta ? "cta" : isHook ? "hook" : "";
-        const illusKey = selectedIllus;
+        const illusKey =
+          postType === "carousel"
+            ? getCarouselIllustrationKey(index)
+            : selectedIllus;
         const illusPos = getIllustrationPlacement(illusKey);
         const baseIllusStyle = getIllustrationStyle(illusKey, illusPos);
 
         return {
-          text,
+          text: normalizedText,
           color,
           extraClass,
           slideNum: postType === "carousel" ? index + 1 : null,
           total: postType === "carousel" ? slides.length : null,
-          textSize: getFontSize(text, extraClass),
+          textSize: getFontSize(normalizedText, extraClass),
           illusKey,
           illusPos,
           illusStyle: baseIllusStyle
