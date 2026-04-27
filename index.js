@@ -1,80 +1,120 @@
 import "dotenv/config";
+import http from "http";
+import { readFile } from "fs/promises";
+import path from "path";
+import { fileURLToPath } from "url";
+import { generatePost } from "./utils/generatePost.js";
+import { saveGeneration } from "./utils/saveGeneration.js";
 
-import readline from "readline";
-import { StringOutputParser } from "@langchain/core/output_parsers";
-import { ChatOpenAI } from "@langchain/openai";
-import {
-  RunnablePassthrough,
-  RunnableSequence,
-} from "@langchain/core/runnables";
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const publicDir = path.join(__dirname, "public");
+const port = Number(process.env.PORT) || 3000;
+const host = process.env.HOST || "127.0.0.1";
 
-import standaloneQuestionPrompt from "./utils/prompts/standaloneQuestionPrompt.js";
-import answerPrompt from "./utils/prompts/answerPrompt.js";
-import retriever from "./utils/retriever.js";
-import combineDocuments from "./utils/combineDocuments.js";
+function sendJson(res, statusCode, payload) {
+  res.writeHead(statusCode, { "Content-Type": "application/json; charset=utf-8" });
+  res.end(JSON.stringify(payload));
+}
 
-// Setup readline interface
-const rl = readline.createInterface({
-  input: process.stdin,
-  output: process.stdout,
-});
+function getContentType(filePath) {
+  if (filePath.endsWith(".html")) return "text/html; charset=utf-8";
+  if (filePath.endsWith(".js")) return "text/javascript; charset=utf-8";
+  if (filePath.endsWith(".css")) return "text/css; charset=utf-8";
+  if (filePath.endsWith(".json")) return "application/json; charset=utf-8";
+  if (filePath.endsWith(".svg")) return "image/svg+xml";
+  return "text/plain; charset=utf-8";
+}
 
-async function runChat() {
+async function serveStatic(req, res) {
+  const urlPath = req.url === "/" ? "/index.html" : req.url;
+  const safePath = path.normalize(urlPath).replace(/^(\.\.[/\\])+/, "");
+  const filePath = path.join(publicDir, safePath);
+
   try {
-    // Display an introductory line before asking for user input
-    console.log("\n");
-    console.log("Welcome to the WFTS Motivational Post Generator!");
-    console.log("\n");
-
-    rl.question(
-      "Please enter the theme for today's motivational post: ",
-      async (input) => {
-        const openAIApiKey = process.env.OPENAI_API_KEY;
-        const llm = new ChatOpenAI({ openAIApiKey });
-
-        // Chains
-        const standaloneQuestionChain = standaloneQuestionPrompt
-          .pipe(llm)
-          .pipe(new StringOutputParser());
-
-        const retrieverChain = RunnableSequence.from([
-          (prevResult) => prevResult.standalone_question,
-          retriever,
-          combineDocuments,
-        ]);
-
-        const answerChain = answerPrompt
-          .pipe(llm)
-          .pipe(new StringOutputParser());
-
-        const chain = RunnableSequence.from([
-          {
-            standalone_question: standaloneQuestionChain,
-            original_input: new RunnablePassthrough(),
-          },
-          {
-            context: retrieverChain,
-            question: ({ original_input }) => original_input.question,
-          },
-          answerChain,
-        ]);
-
-        const response = await chain.invoke({
-          question: input,
-        });
-
-        console.log("\n");
-        console.log(`Here goes your post for: "${input}"`);
-        console.log("\n");
-        console.log(response);
-
-        // Close the readline interface after processing is complete
-        rl.close();
-      }
-    );
-  } catch (error) {
-    console.error(error);
+    const content = await readFile(filePath);
+    res.writeHead(200, { "Content-Type": getContentType(filePath) });
+    res.end(content);
+  } catch {
+    sendJson(res, 404, { error: "Not found" });
   }
 }
 
-runChat();
+function readRequestBody(req) {
+  return new Promise((resolve, reject) => {
+    let body = "";
+
+    req.on("data", (chunk) => {
+      body += chunk;
+      if (body.length > 1_000_000) {
+        reject(new Error("Request body too large"));
+        req.destroy();
+      }
+    });
+
+    req.on("end", () => resolve(body));
+    req.on("error", reject);
+  });
+}
+
+const server = http.createServer(async (req, res) => {
+  if (req.method === "POST" && req.url === "/generate") {
+    try {
+      const rawBody = await readRequestBody(req);
+      const { theme, postType, slideCount } = JSON.parse(rawBody || "{}");
+
+      if (!theme?.trim()) {
+        return sendJson(res, 400, { error: "Theme is required." });
+      }
+
+      const result = await generatePost({
+        question: theme.trim(),
+        postType: postType === "carousel" ? "carousel" : "standalone",
+        slideCount,
+      });
+
+      return sendJson(res, 200, result);
+    } catch (error) {
+      return sendJson(res, 500, {
+        error: error.message || "Failed to generate post.",
+      });
+    }
+  }
+
+  if (req.method === "POST" && req.url === "/save-generation") {
+    try {
+      const rawBody = await readRequestBody(req);
+      const payload = JSON.parse(rawBody || "{}");
+
+      if (!payload.theme?.trim()) {
+        return sendJson(res, 400, { error: "Theme is required." });
+      }
+
+      if (!Array.isArray(payload.slides) || !payload.slides.length) {
+        return sendJson(res, 400, { error: "Slides are required." });
+      }
+
+      const result = await saveGeneration({
+        ...payload,
+        theme: payload.theme.trim(),
+        postType: payload.postType === "carousel" ? "carousel" : "standalone",
+      });
+
+      return sendJson(res, 200, { saved: true, record: result });
+    } catch (error) {
+      return sendJson(res, 500, {
+        error: error.message || "Failed to save generation.",
+      });
+    }
+  }
+
+  if (req.method === "GET" || req.method === "HEAD") {
+    return serveStatic(req, res);
+  }
+
+  sendJson(res, 405, { error: "Method not allowed" });
+});
+
+server.listen(port, host, () => {
+  console.log(`WFTS generator running at http://${host}:${port}`);
+});

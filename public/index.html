@@ -1,0 +1,1160 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Words For The Soul Generator</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Jost:wght@300;400;500&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/styles.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  </head>
+  <body>
+    <div class="shell">
+      <div class="hero">
+        <div class="eyebrow">Words For The Soul</div>
+        <h1>Generate The Copy And The Design Together</h1>
+        <p>
+          Enter the theme, let the model write in the WFTS voice, and
+          immediately turn the result into downloadable branded slides.
+        </p>
+      </div>
+
+      <div class="layout">
+        <section class="panel">
+          <div class="panel-title">Prompt And Styling</div>
+          <div class="stack">
+            <div>
+              <label for="themeInput">Theme</label>
+              <textarea
+                id="themeInput"
+                placeholder="Example: healing after being disappointed by people you trusted"
+              ></textarea>
+            </div>
+
+            <div>
+              <label>Post Type</label>
+              <div class="post-types">
+                <button
+                  class="chip active"
+                  data-type="standalone"
+                  type="button"
+                >
+                  Standalone
+                </button>
+                <button class="chip" data-type="carousel" type="button">
+                  Carousel
+                </button>
+              </div>
+            </div>
+
+            <div id="carouselCountWrap" hidden>
+              <label for="slideCount">Total Carousel Slides</label>
+              <select id="slideCount">
+                <option value="4">4 slides</option>
+                <option value="5">5 slides</option>
+                <option value="6" selected>6 slides</option>
+                <option value="7">7 slides</option>
+                <option value="8">8 slides</option>
+                <option value="9">9 slides</option>
+                <option value="10">10 slides</option>
+              </select>
+              <div class="status" style="min-height: 0; font-size: 0.8rem">
+                Includes the hook slide and the final CTA slide.
+              </div>
+            </div>
+
+            <div>
+              <label>Color</label>
+              <div class="palette" id="colorPicker"></div>
+            </div>
+
+            <div>
+              <label>Illustration</label>
+              <div class="illus-grid">
+                <button
+                  class="illus illus-text active"
+                  data-illus="lilly"
+                  type="button"
+                >
+                  Lilly
+                </button>
+                <button
+                  class="illus illus-text"
+                  data-illus="element16a"
+                  type="button"
+                >
+                  Element 16
+                </button>
+                <button
+                  class="illus illus-text"
+                  data-illus="element32a"
+                  type="button"
+                >
+                  Element 32
+                </button>
+                <button
+                  class="illus illus-text"
+                  data-illus="element33a"
+                  type="button"
+                >
+                  Element 33
+                </button>
+                <button
+                  class="illus illus-text"
+                  data-illus="element34a"
+                  type="button"
+                >
+                  Element 34
+                </button>
+                <button
+                  class="illus illus-text"
+                  data-illus="element35a"
+                  type="button"
+                >
+                  Element 35
+                </button>
+                <button class="illus" data-illus="none" type="button">∅</button>
+              </div>
+            </div>
+
+            <div class="row">
+              <div>
+                <label for="fontSize">Font Size</label>
+                <select id="fontSize">
+                  <option value="auto">Auto</option>
+                  <option value="small">Small</option>
+                  <option value="medium">Medium</option>
+                  <option value="large">Large</option>
+                </select>
+              </div>
+              <div>
+                <label for="illusPos">Illustration Position</label>
+                <select id="illusPos">
+                  <option value="auto">Auto (recommended)</option>
+                  <option value="top-center">Top Center</option>
+                  <option value="top-right">Top Right</option>
+                  <option value="bottom-right">Bottom Right</option>
+                  <option value="top-left">Top Left</option>
+                  <option value="scattered">Background</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="row">
+              <div>
+                <label for="handleInput">Handle / Watermark</label>
+                <input
+                  id="handleInput"
+                  type="text"
+                  value="@wordsforthesoul_motivation"
+                />
+              </div>
+              <div>
+                <label for="ctaInput">Custom CTA (Optional)</label>
+                <input
+                  id="ctaInput"
+                  type="text"
+                  value=""
+                  placeholder="Leave blank to use the AI-generated CTA"
+                />
+              </div>
+            </div>
+
+            <div class="actions">
+              <button class="btn btn-primary" id="generateBtn" type="button">
+                Generate Designs
+              </button>
+              <button class="btn btn-secondary" id="testBtn" type="button">
+                Render Test
+              </button>
+              <button
+                class="btn btn-secondary"
+                id="saveBtn"
+                type="button"
+                disabled
+              >
+                Save
+              </button>
+              <button class="btn btn-secondary" id="downloadBtn" type="button">
+                Download All
+              </button>
+            </div>
+
+            <div class="status" id="statusText"></div>
+          </div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-title">Preview</div>
+          <div class="slides-row" id="slidesRow"></div>
+          <div class="editor-panel" id="editorPanel" hidden>
+            <div class="editor-header">
+              <div class="panel-title">Slide Editor</div>
+              <button class="editor-close" id="editorClose" type="button">
+                Close
+              </button>
+            </div>
+            <div class="editor-empty" id="editorEmpty">
+              Click a slide to edit its text and image styling.
+            </div>
+            <div class="editor-form" id="editorForm" hidden>
+              <div>
+                <label for="editorText">Slide Text</label>
+                <textarea id="editorText"></textarea>
+              </div>
+              <div>
+                <label>Background Color</label>
+                <div class="palette editor-palette" id="editorBgColorPicker"></div>
+              </div>
+              <div class="row">
+                <div>
+                  <label for="editorIllus">Slide Image</label>
+                  <select id="editorIllus">
+                    <option value="lilly">Lilly</option>
+                    <option value="element16a">Element 16</option>
+                    <option value="element32a">Element 32</option>
+                    <option value="element33a">Element 33</option>
+                    <option value="element34a">Element 34</option>
+                    <option value="element35a">Element 35</option>
+                    <option value="none">None</option>
+                  </select>
+                </div>
+                <div>
+                  <label for="editorIllusPos">Image Position</label>
+                  <select id="editorIllusPos">
+                    <option value="auto">Auto</option>
+                    <option value="top-center">Top Center</option>
+                    <option value="top-right">Top Right</option>
+                    <option value="bottom-right">Bottom Right</option>
+                    <option value="top-left">Top Left</option>
+                    <option value="scattered">Background</option>
+                  </select>
+                </div>
+              </div>
+              <div class="row">
+                <div>
+                  <label for="editorOpacity">Image Opacity</label>
+                  <div class="control-pair">
+                    <input
+                      id="editorOpacity"
+                      type="range"
+                      min="0"
+                      max="1"
+                      step="0.01"
+                    />
+                    <input
+                      id="editorOpacityNumber"
+                      type="number"
+                      min="0"
+                      max="1"
+                      step="0.01"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label for="editorScale">Image Size</label>
+                  <div class="control-pair">
+                    <input
+                      id="editorScale"
+                      type="range"
+                      min="80"
+                      max="420"
+                      step="1"
+                    />
+                    <input
+                      id="editorScaleNumber"
+                      type="number"
+                      min="80"
+                      max="420"
+                      step="1"
+                    />
+                  </div>
+                </div>
+              </div>
+              <div class="row">
+                <div>
+                  <label for="editorX">Image X Offset</label>
+                  <div class="control-pair">
+                    <input
+                      id="editorX"
+                      type="range"
+                      min="-180"
+                      max="180"
+                      step="1"
+                    />
+                    <input
+                      id="editorXNumber"
+                      type="number"
+                      min="-180"
+                      max="180"
+                      step="1"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label for="editorY">Image Y Offset</label>
+                  <div class="control-pair">
+                    <input
+                      id="editorY"
+                      type="range"
+                      min="-180"
+                      max="180"
+                      step="1"
+                    />
+                    <input
+                      id="editorYNumber"
+                      type="number"
+                      min="-180"
+                      max="180"
+                      step="1"
+                    />
+                  </div>
+                </div>
+              </div>
+              <div class="row">
+                <div>
+                  <label for="editorRotation">Image Rotation</label>
+                  <div class="control-pair">
+                    <input
+                      id="editorRotation"
+                      type="range"
+                      min="-45"
+                      max="45"
+                      step="1"
+                    />
+                    <input
+                      id="editorRotationNumber"
+                      type="number"
+                      min="-45"
+                      max="45"
+                      step="1"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label for="editorFontSize">Text Size</label>
+                  <div class="control-pair">
+                    <input
+                      id="editorFontSize"
+                      type="range"
+                      min="0.6"
+                      max="1.3"
+                      step="0.01"
+                    />
+                    <input
+                      id="editorFontSizeNumber"
+                      type="number"
+                      min="0.6"
+                      max="1.3"
+                      step="0.01"
+                    />
+                  </div>
+                </div>
+              </div>
+              <div class="editor-readout" id="editorReadout"></div>
+            </div>
+          </div>
+          <pre class="raw-output" id="rawOutput" hidden></pre>
+        </section>
+      </div>
+    </div>
+
+    <script>
+      const COLORS = [
+        { hex: "#F0F2FA", name: "Frost" },
+        { hex: "#2A383F", name: "Deep Teal" },
+        { hex: "#7B9E87", name: "Sage" },
+        { hex: "#E1DEE9", name: "Lavender Mist" },
+        { hex: "#B8AEC2", name: "Mauve" },
+        { hex: "#B5838D", name: "Dusty Rose" },
+        { hex: "#7180AC", name: "Periwinkle" },
+        { hex: "#B84C65", name: "Berry" },
+      ];
+
+      const SVGS = {};
+
+      const IMAGE_ASSETS = {
+        lilly: "/assets/lilly.png",
+        element16a: "/assets/element-16a.png",
+        element32a: "/assets/element-32a.png",
+        element33a: "/assets/element-33a.png",
+        element34a: "/assets/element-34a.png",
+        element35a: "/assets/element-35a.png",
+      };
+
+      const TEST_CONTENT = {
+        standalone: [
+          "The version of you you're becoming deserves your patience while you grow into her.",
+        ],
+        carousel: [
+          "What if this season is building the strength you asked for?",
+          "Not every slow season means you're stuck. Some seasons are teaching you how to last.",
+          "You are allowed to be a work in progress and still be proud of how far you've come.",
+          "The life you're praying for is often shaped in the quiet moments nobody applauds.",
+          "Keep going. The roots are growing even when the bloom isn't visible yet.",
+          "Save this for the days you need to trust your timing.",
+        ],
+      };
+
+      let selectedType = "standalone";
+      let selectedColor = "auto";
+      let selectedIllus = "lilly";
+      let colorIndex = 0;
+      let lastDownloadBaseName = "wfts-post";
+
+      const colorPicker = document.getElementById("colorPicker");
+      const slidesRow = document.getElementById("slidesRow");
+      const statusText = document.getElementById("statusText");
+      const rawOutput = document.getElementById("rawOutput");
+      const generateBtn = document.getElementById("generateBtn");
+      const testBtn = document.getElementById("testBtn");
+      const saveBtn = document.getElementById("saveBtn");
+      const carouselCountWrap = document.getElementById("carouselCountWrap");
+      const editorPanel = document.getElementById("editorPanel");
+      const editorClose = document.getElementById("editorClose");
+      const editorEmpty = document.getElementById("editorEmpty");
+      const editorForm = document.getElementById("editorForm");
+      const editorText = document.getElementById("editorText");
+      const editorBgColorPicker = document.getElementById("editorBgColorPicker");
+      const editorIllus = document.getElementById("editorIllus");
+      const editorIllusPos = document.getElementById("editorIllusPos");
+      const editorOpacity = document.getElementById("editorOpacity");
+      const editorOpacityNumber = document.getElementById("editorOpacityNumber");
+      const editorScale = document.getElementById("editorScale");
+      const editorScaleNumber = document.getElementById("editorScaleNumber");
+      const editorX = document.getElementById("editorX");
+      const editorXNumber = document.getElementById("editorXNumber");
+      const editorY = document.getElementById("editorY");
+      const editorYNumber = document.getElementById("editorYNumber");
+      const editorRotation = document.getElementById("editorRotation");
+      const editorRotationNumber = document.getElementById("editorRotationNumber");
+      const editorFontSize = document.getElementById("editorFontSize");
+      const editorFontSizeNumber = document.getElementById("editorFontSizeNumber");
+      const editorReadout = document.getElementById("editorReadout");
+      let lastGeneration = null;
+      let currentSlidesData = [];
+      let currentPostType = "standalone";
+      let currentRawOutput = "";
+      let selectedSlideIndex = null;
+
+      function renderColorPicker() {
+        colorPicker.innerHTML = "";
+
+        const auto = document.createElement("button");
+        auto.type = "button";
+        auto.className = `swatch ${selectedColor === "auto" ? "active" : ""}`;
+        auto.style.background =
+          "conic-gradient(#F0F2FA, #2A383F, #7B9E87, #E1DEE9, #B8AEC2, #B5838D, #7180AC, #B84C65)";
+        auto.title = "Auto rotate";
+        auto.addEventListener("click", () => {
+          selectedColor = "auto";
+          renderColorPicker();
+        });
+        colorPicker.appendChild(auto);
+
+        COLORS.forEach((color) => {
+          const swatch = document.createElement("button");
+          swatch.type = "button";
+          swatch.className = `swatch ${selectedColor === color.hex ? "active" : ""}`;
+          swatch.style.background = color.hex;
+          swatch.title = color.name;
+          swatch.addEventListener("click", () => {
+            selectedColor = color.hex;
+            renderColorPicker();
+          });
+          colorPicker.appendChild(swatch);
+        });
+
+        renderEditorColorPicker();
+      }
+
+      function renderEditorColorPicker() {
+        editorBgColorPicker.innerHTML = "";
+
+        COLORS.forEach((color) => {
+          const swatch = document.createElement("button");
+          swatch.type = "button";
+          swatch.className = "swatch";
+          if (
+            selectedSlideIndex !== null &&
+            currentSlidesData[selectedSlideIndex]?.color === color.hex
+          ) {
+            swatch.classList.add("active");
+          }
+          swatch.style.background = color.hex;
+          swatch.title = color.name;
+          swatch.addEventListener("click", () => {
+            updateSelectedSlide((slideData) => {
+              slideData.color = color.hex;
+            });
+          });
+          editorBgColorPicker.appendChild(swatch);
+        });
+      }
+
+      function isDark(hex) {
+        const r = parseInt(hex.slice(1, 3), 16);
+        const g = parseInt(hex.slice(3, 5), 16);
+        const b = parseInt(hex.slice(5, 7), 16);
+        return 0.299 * r + 0.587 * g + 0.114 * b < 100;
+      }
+
+      function getNextColor() {
+        const color = COLORS[colorIndex % COLORS.length].hex;
+        colorIndex += 1;
+        return color;
+      }
+
+      function slugifyTheme(theme) {
+        const cleaned = theme
+          .toLowerCase()
+          .replace(/[^a-z0-9\s-]/g, "")
+          .trim()
+          .split(/\s+/)
+          .slice(0, 6)
+          .join("-");
+
+        return cleaned.slice(0, 42) || "wfts-post";
+      }
+
+      function getTimestamp() {
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = String(now.getMonth() + 1).padStart(2, "0");
+        const day = String(now.getDate()).padStart(2, "0");
+        const hours = String(now.getHours()).padStart(2, "0");
+        const minutes = String(now.getMinutes()).padStart(2, "0");
+        return `${year}-${month}-${day}-${hours}${minutes}`;
+      }
+
+      function buildDownloadBaseName() {
+        const theme = document.getElementById("themeInput").value.trim();
+        return `${slugifyTheme(theme)}-${getTimestamp()}`;
+      }
+
+      function getFontSize(text, extraClass = "") {
+        if (extraClass === "cta") return "0.85rem";
+        if (extraClass === "hook") return "1.05rem";
+
+        const size = document.getElementById("fontSize").value;
+        const sizeMap = {
+          small: "0.78rem",
+          medium: "0.9rem",
+          large: "1.05rem",
+        };
+        if (size !== "auto") return sizeMap[size];
+        if (text.length < 60) return "1.05rem";
+        if (text.length < 120) return "0.92rem";
+        if (text.length < 200) return "0.82rem";
+        return "0.72rem";
+      }
+
+      function isImageAsset(illus) {
+        return Boolean(IMAGE_ASSETS[illus]);
+      }
+
+      function getIllustrationPlacement(illus) {
+        const chosenPosition = document.getElementById("illusPos").value;
+        if (chosenPosition !== "auto") return chosenPosition;
+
+        if (!isImageAsset(illus)) return "top-center";
+
+        if (illus === "lilly") return "bottom-right";
+        if (illus === "element16a") return "top-right";
+        if (illus === "element32a") return "top-center";
+        if (illus === "element33a") return "bottom-right";
+        if (illus === "element34a") return "bottom-right";
+        if (illus === "element35a") return "top-right";
+
+        return "top-right";
+      }
+
+      function getIllustrationStyle(illus, placement) {
+        if (!isImageAsset(illus)) {
+          return null;
+        }
+
+        if (placement === "top-center") {
+          return { width: 145, opacity: 0.5, rotation: -8 };
+        }
+
+        if (placement === "top-right") {
+          return { width: 215, opacity: 0.7, rotation: 10 };
+        }
+
+        if (placement === "bottom-right") {
+          return { width: 290, opacity: 0.7, rotation: 14 };
+        }
+
+        if (placement === "scattered") {
+          return { width: 320, opacity: 0.5, rotation: -10 };
+        }
+
+        return { width: 180, opacity: 0.5, rotation: 8 };
+      }
+
+      function buildSlide(
+        text,
+        color,
+        extraClass = "",
+        slideNum = null,
+        total = null,
+        overrides = {},
+      ) {
+        const dark = isDark(color);
+        const textColor = dark ? "#F0EDE8" : "#2C2C2C";
+        const illusKey = overrides.illusKey || selectedIllus;
+        const illusPos =
+          overrides.illusPos || getIllustrationPlacement(illusKey);
+
+        const slide = document.createElement("div");
+        slide.className = `quote-slide${dark ? " dark" : ""}${extraClass ? ` ${extraClass}` : ""}`;
+        slide.style.background = color;
+        slide.style.color = textColor;
+
+        if (slideNum && total) {
+          const num = document.createElement("div");
+          num.className = "slide-num";
+          num.textContent = `${slideNum} / ${total}`;
+          slide.appendChild(num);
+        }
+
+        if (illusKey !== "none" && (SVGS[illusKey] || IMAGE_ASSETS[illusKey])) {
+          const illusWrap = document.createElement("div");
+          illusWrap.className = `slide-illus ${illusPos}${isImageAsset(illusKey) ? " image-asset" : ""} illus-${illusKey}`;
+          if (SVGS[illusKey]) {
+            illusWrap.innerHTML = SVGS[illusKey];
+            illusWrap.style.color = textColor;
+          } else {
+            const illusStyle =
+              overrides.illusStyle || getIllustrationStyle(illusKey, illusPos);
+            const img = document.createElement("img");
+            img.src = IMAGE_ASSETS[illusKey];
+            img.alt = "";
+            img.className = "slide-illus-image";
+            if (illusStyle) {
+              img.style.width = `${illusStyle.width}px`;
+              img.style.opacity = illusStyle.opacity;
+              img.style.transform = `translate(${illusStyle.offsetX || 0}px, ${illusStyle.offsetY || 0}px) rotate(${illusStyle.rotation || 0}deg)`;
+            }
+            illusWrap.appendChild(img);
+          }
+          slide.appendChild(illusWrap);
+        }
+
+        const dividerTop = document.createElement("div");
+        dividerTop.className = "divider";
+        slide.appendChild(dividerTop);
+
+        const textNode = document.createElement("div");
+        textNode.className = "quote-text";
+        textNode.style.fontSize =
+          overrides.textSize || getFontSize(text, extraClass);
+        textNode.textContent = text;
+        slide.appendChild(textNode);
+
+        const dividerBottom = document.createElement("div");
+        dividerBottom.className = "divider";
+        slide.appendChild(dividerBottom);
+
+        const handle = document.createElement("div");
+        handle.className = "handle";
+        handle.textContent =
+          document.getElementById("handleInput").value ||
+          "@wordsforthesoul_motivation";
+        slide.appendChild(handle);
+
+        return slide;
+      }
+
+      function createSlideData(postType, slides, text, index) {
+        const color = selectedColor === "auto" ? getNextColor() : selectedColor;
+        const isHook = postType === "carousel" && index === 0;
+        const isCta = postType === "carousel" && index === slides.length - 1;
+        const extraClass = isCta ? "cta" : isHook ? "hook" : "";
+        const illusKey = selectedIllus;
+        const illusPos = getIllustrationPlacement(illusKey);
+        const baseIllusStyle = getIllustrationStyle(illusKey, illusPos);
+
+        return {
+          text,
+          color,
+          extraClass,
+          slideNum: postType === "carousel" ? index + 1 : null,
+          total: postType === "carousel" ? slides.length : null,
+          textSize: getFontSize(text, extraClass),
+          illusKey,
+          illusPos,
+          illusStyle: baseIllusStyle
+            ? { ...baseIllusStyle, offsetX: 0, offsetY: 0 }
+            : null,
+        };
+      }
+
+      function syncGenerationState() {
+        if (!currentSlidesData.length) return;
+
+        lastGeneration = {
+          theme:
+            document.getElementById("themeInput").value.trim() ||
+            "styling-test",
+          postType: currentPostType,
+          slideCount:
+            currentPostType === "carousel" ? currentSlidesData.length : null,
+          slides: currentSlidesData.map((slide) => slide.text),
+          rawOutput: currentRawOutput,
+          downloadBaseName: lastDownloadBaseName,
+          ...getCurrentDesignSettings(),
+        };
+      }
+
+      function renderEditor() {
+        const slideData =
+          selectedSlideIndex === null
+            ? null
+            : currentSlidesData[selectedSlideIndex];
+
+        editorPanel.hidden = !slideData;
+        editorEmpty.hidden = Boolean(slideData);
+        editorForm.hidden = !slideData;
+
+        if (!slideData) {
+          editorReadout.textContent = "";
+          return;
+        }
+
+        editorText.value = slideData.text;
+        editorIllus.value = slideData.illusKey;
+        editorIllusPos.value = slideData.illusPos;
+        editorOpacity.value = slideData.illusStyle?.opacity ?? 0;
+        editorOpacityNumber.value = slideData.illusStyle?.opacity ?? 0;
+        editorScale.value = slideData.illusStyle?.width ?? 140;
+        editorScaleNumber.value = slideData.illusStyle?.width ?? 140;
+        editorX.value = slideData.illusStyle?.offsetX ?? 0;
+        editorXNumber.value = slideData.illusStyle?.offsetX ?? 0;
+        editorY.value = slideData.illusStyle?.offsetY ?? 0;
+        editorYNumber.value = slideData.illusStyle?.offsetY ?? 0;
+        editorRotation.value = slideData.illusStyle?.rotation ?? 0;
+        editorRotationNumber.value = slideData.illusStyle?.rotation ?? 0;
+        editorFontSize.value = Number.parseFloat(slideData.textSize) || 0.92;
+        editorFontSizeNumber.value =
+          Number.parseFloat(slideData.textSize) || 0.92;
+        editorReadout.textContent = `Editing slide ${selectedSlideIndex + 1}`;
+        renderEditorColorPicker();
+      }
+
+      function renderPreviewFromState() {
+        slidesRow.innerHTML = "";
+        editorPanel.hidden = selectedSlideIndex === null;
+
+        currentSlidesData.forEach((slideData, index) => {
+          const slide = buildSlide(
+            slideData.text,
+            slideData.color,
+            slideData.extraClass,
+            slideData.slideNum,
+            slideData.total,
+            {
+              textSize: slideData.textSize,
+              illusKey: slideData.illusKey,
+              illusPos: slideData.illusPos,
+              illusStyle: slideData.illusStyle,
+            },
+          );
+
+          const wrap = document.createElement("div");
+          wrap.className = `slide-wrap${selectedSlideIndex === index ? " is-selected" : ""}`;
+          wrap.addEventListener("click", () => {
+            selectedSlideIndex = index;
+            renderPreviewFromState();
+          });
+          wrap.appendChild(slide);
+
+          const button = document.createElement("button");
+          button.type = "button";
+          button.className = "mini-btn";
+          button.textContent =
+            currentPostType === "standalone"
+              ? "Download"
+              : `Slide ${index + 1}`;
+          button.addEventListener("click", (event) => {
+            event.stopPropagation();
+            const filename =
+              currentPostType === "standalone"
+                ? `${lastDownloadBaseName}.png`
+                : `${lastDownloadBaseName}-slide-${index + 1}${slide.classList.contains("cta") ? "-cta" : ""}.png`;
+            downloadSlide(slide, filename);
+          });
+          wrap.appendChild(button);
+
+          if (selectedSlideIndex === index) {
+            const editorGroup = document.createElement("div");
+            editorGroup.className = "editor-group";
+            editorGroup.appendChild(wrap);
+            editorPanel.hidden = false;
+            editorGroup.appendChild(editorPanel);
+            slidesRow.appendChild(editorGroup);
+          } else {
+            slidesRow.appendChild(wrap);
+          }
+        });
+
+        rawOutput.hidden = false;
+        rawOutput.textContent = currentRawOutput;
+        renderEditor();
+        syncGenerationState();
+      }
+
+      function renderSlides(postType, slides, rawText) {
+        colorIndex = 0;
+        currentPostType = postType;
+        currentRawOutput = rawText;
+        currentSlidesData = slides.map((text, index) =>
+          createSlideData(postType, slides, text, index),
+        );
+        selectedSlideIndex = currentSlidesData.length ? 0 : null;
+        renderPreviewFromState();
+      }
+
+      function buildTestSlides() {
+        if (selectedType === "standalone") {
+          return [...TEST_CONTENT.standalone];
+        }
+
+        const requestedCount =
+          Number(document.getElementById("slideCount").value) || 6;
+        const baseSlides = [...TEST_CONTENT.carousel];
+
+        if (requestedCount <= 1) {
+          return [baseSlides[0]];
+        }
+
+        if (requestedCount >= baseSlides.length) {
+          return baseSlides.slice(0, requestedCount);
+        }
+
+        const hook = baseSlides[0];
+        const cta = baseSlides[baseSlides.length - 1];
+        const middleCount = Math.max(0, requestedCount - 2);
+        const middleSlides = baseSlides.slice(1, 1 + middleCount);
+        return [hook, ...middleSlides, cta];
+      }
+
+      function downloadSlide(el, filename) {
+        html2canvas(el, {
+          scale: 2,
+          useCORS: true,
+          backgroundColor: null,
+        }).then((canvas) => {
+          const a = document.createElement("a");
+          a.href = canvas.toDataURL("image/png");
+          a.download = filename;
+          a.click();
+        });
+      }
+
+      function downloadAll() {
+        const slides = document.querySelectorAll(".quote-slide");
+        if (!slides.length) {
+          setStatus(
+            "Generate something first so there are slides to download.",
+            true,
+          );
+          return;
+        }
+
+        slides.forEach((slide, index) => {
+          const isCta = slide.classList.contains("cta");
+          const filename =
+            slides.length === 1
+              ? `${lastDownloadBaseName}.png`
+              : `${lastDownloadBaseName}-slide-${index + 1}${isCta ? "-cta" : ""}.png`;
+          setTimeout(() => downloadSlide(slide, filename), index * 400);
+        });
+      }
+
+      function setStatus(message, isError = false) {
+        statusText.textContent = message;
+        statusText.classList.toggle("error", isError);
+      }
+
+      function getCurrentDesignSettings() {
+        return {
+          handle: document.getElementById("handleInput").value.trim(),
+          customCta: document.getElementById("ctaInput").value.trim(),
+          selectedColor,
+          selectedIllus,
+          illusPos: document.getElementById("illusPos").value,
+          fontSize: document.getElementById("fontSize").value,
+        };
+      }
+
+      function updatePostTypeUi() {
+        carouselCountWrap.hidden = selectedType !== "carousel";
+      }
+
+      async function generateDesigns() {
+        const theme = document.getElementById("themeInput").value.trim();
+        const slideCount = Number(document.getElementById("slideCount").value);
+        if (!theme) {
+          setStatus("Enter a theme first.", true);
+          return;
+        }
+
+        generateBtn.disabled = true;
+        saveBtn.disabled = true;
+        setStatus("Generating copy and building slides...");
+
+        try {
+          const response = await fetch("/generate", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ theme, postType: selectedType, slideCount }),
+          });
+
+          const payload = await response.json();
+          if (!response.ok) {
+            throw new Error(payload.error || "Generation failed.");
+          }
+
+          let slides = payload.slides || [];
+          if (selectedType === "carousel" && slides.length > 1) {
+            const ctaInput = document.getElementById("ctaInput").value.trim();
+            if (ctaInput) {
+              slides[slides.length - 1] = ctaInput;
+            }
+          }
+
+          lastDownloadBaseName = buildDownloadBaseName();
+          renderSlides(payload.postType, slides, payload.rawOutput);
+          lastGeneration = {
+            theme,
+            postType: payload.postType,
+            slideCount:
+              payload.slideCount ||
+              (payload.postType === "carousel" ? slides.length : null),
+            slides,
+            rawOutput: payload.rawOutput,
+            downloadBaseName: lastDownloadBaseName,
+            ...getCurrentDesignSettings(),
+          };
+          saveBtn.disabled = false;
+          setStatus(
+            `Generated ${slides.length} ${slides.length === 1 ? "slide" : "slides"}.`,
+          );
+        } catch (error) {
+          lastGeneration = null;
+          setStatus(error.message || "Something went wrong.", true);
+        } finally {
+          generateBtn.disabled = false;
+        }
+      }
+
+      function renderTestDesigns() {
+        const theme =
+          document.getElementById("themeInput").value.trim() || "styling-test";
+        const slides = buildTestSlides();
+        const rawText = slides.join("\n\n");
+
+        lastDownloadBaseName = buildDownloadBaseName();
+        renderSlides(selectedType, slides, rawText);
+        lastGeneration = {
+          theme,
+          postType: selectedType,
+          slideCount: selectedType === "carousel" ? slides.length : null,
+          slides,
+          rawOutput: rawText,
+          downloadBaseName: lastDownloadBaseName,
+          ...getCurrentDesignSettings(),
+        };
+        saveBtn.disabled = false;
+        setStatus(
+          `Rendered ${slides.length} test ${slides.length === 1 ? "slide" : "slides"} locally.`,
+        );
+      }
+
+      async function saveCurrentGeneration() {
+        if (!lastGeneration) {
+          setStatus(
+            "Generate something first so there is something to save.",
+            true,
+          );
+          return;
+        }
+
+        saveBtn.disabled = true;
+        setStatus("Saving generation...");
+
+        try {
+          const payload = {
+            ...lastGeneration,
+            ...getCurrentDesignSettings(),
+          };
+
+          const response = await fetch("/save-generation", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+          });
+
+          const result = await response.json();
+          if (!response.ok) {
+            throw new Error(result.error || "Save failed.");
+          }
+
+          lastGeneration = {
+            ...payload,
+            downloadBaseName: lastDownloadBaseName,
+          };
+          setStatus("Saved to the database.");
+        } catch (error) {
+          setStatus(error.message || "Save failed.", true);
+        } finally {
+          saveBtn.disabled = false;
+        }
+      }
+
+      function updateSelectedSlide(mutator) {
+        if (
+          selectedSlideIndex === null ||
+          !currentSlidesData[selectedSlideIndex]
+        ) {
+          return;
+        }
+
+        mutator(currentSlidesData[selectedSlideIndex]);
+        renderPreviewFromState();
+      }
+
+      function bindPairedControl(
+        sliderEl,
+        numberEl,
+        updater,
+        parseValue = (value) => Number(value),
+      ) {
+        const handle = (event) => {
+          const parsedValue = parseValue(event.target.value);
+          sliderEl.value = parsedValue;
+          numberEl.value = parsedValue;
+          updateSelectedSlide((slideData) => updater(slideData, parsedValue));
+        };
+
+        sliderEl.addEventListener("input", handle);
+        numberEl.addEventListener("input", handle);
+      }
+
+      function closeEditor() {
+        selectedSlideIndex = null;
+        renderPreviewFromState();
+      }
+
+      document.querySelectorAll(".chip").forEach((button) => {
+        button.addEventListener("click", () => {
+          document
+            .querySelectorAll(".chip")
+            .forEach((chip) => chip.classList.remove("active"));
+          button.classList.add("active");
+          selectedType = button.dataset.type;
+          updatePostTypeUi();
+        });
+      });
+
+      document.querySelectorAll(".illus").forEach((button) => {
+        button.addEventListener("click", () => {
+          document
+            .querySelectorAll(".illus")
+            .forEach((illus) => illus.classList.remove("active"));
+          button.classList.add("active");
+          selectedIllus = button.dataset.illus;
+        });
+      });
+
+      generateBtn.addEventListener("click", generateDesigns);
+      testBtn.addEventListener("click", renderTestDesigns);
+      saveBtn.addEventListener("click", saveCurrentGeneration);
+      editorClose.addEventListener("click", closeEditor);
+      document
+        .getElementById("downloadBtn")
+        .addEventListener("click", downloadAll);
+      editorText.addEventListener("input", (event) => {
+        updateSelectedSlide((slideData) => {
+          slideData.text = event.target.value;
+        });
+      });
+      editorIllus.addEventListener("change", (event) => {
+        updateSelectedSlide((slideData) => {
+          slideData.illusKey = event.target.value;
+          slideData.illusPos =
+            slideData.illusPos === "auto"
+              ? getIllustrationPlacement(slideData.illusKey)
+              : slideData.illusPos;
+          const nextStyle =
+            slideData.illusKey === "none"
+              ? null
+              : getIllustrationStyle(slideData.illusKey, slideData.illusPos);
+          slideData.illusStyle = nextStyle
+            ? { ...nextStyle, offsetX: 0, offsetY: 0 }
+            : null;
+        });
+      });
+      editorIllusPos.addEventListener("change", (event) => {
+        updateSelectedSlide((slideData) => {
+          const nextPos = event.target.value;
+          slideData.illusPos =
+            nextPos === "auto"
+              ? getIllustrationPlacement(slideData.illusKey)
+              : nextPos;
+          if (slideData.illusKey === "none") {
+            slideData.illusStyle = null;
+            return;
+          }
+          const nextStyle = getIllustrationStyle(
+            slideData.illusKey,
+            slideData.illusPos,
+          );
+          slideData.illusStyle = nextStyle
+            ? {
+                ...nextStyle,
+                offsetX: slideData.illusStyle?.offsetX ?? 0,
+                offsetY: slideData.illusStyle?.offsetY ?? 0,
+              }
+            : null;
+        });
+      });
+      bindPairedControl(editorOpacity, editorOpacityNumber, (slideData, value) => {
+        if (!slideData.illusStyle) return;
+        slideData.illusStyle.opacity = value;
+      });
+      bindPairedControl(editorScale, editorScaleNumber, (slideData, value) => {
+        if (!slideData.illusStyle) return;
+        slideData.illusStyle.width = value;
+      });
+      bindPairedControl(editorX, editorXNumber, (slideData, value) => {
+        if (!slideData.illusStyle) return;
+        slideData.illusStyle.offsetX = value;
+      });
+      bindPairedControl(editorY, editorYNumber, (slideData, value) => {
+        if (!slideData.illusStyle) return;
+        slideData.illusStyle.offsetY = value;
+      });
+      bindPairedControl(editorRotation, editorRotationNumber, (slideData, value) => {
+        if (!slideData.illusStyle) return;
+        slideData.illusStyle.rotation = value;
+      });
+      bindPairedControl(
+        editorFontSize,
+        editorFontSizeNumber,
+        (slideData, value) => {
+          slideData.textSize = `${value.toFixed(2)}rem`;
+        },
+      );
+
+      renderColorPicker();
+      updatePostTypeUi();
+      renderEditor();
+    </script>
+  </body>
+</html>
